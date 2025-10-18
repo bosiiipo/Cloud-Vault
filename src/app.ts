@@ -1,0 +1,72 @@
+import express, { NextFunction, Request, Response } from 'express';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import {config} from './config';
+
+import {signUpRouter} from './routes/Auth/signUp.router';
+import {signInRouter} from './routes/Auth/signIn.router';
+import { uploadFileRouter } from './routes/Files/uploadFile.router';
+import { uploadFilesRouter } from './routes/Files/uploadFiles.router';
+import { downloadFileRouter } from './routes/Files/downloadFile.router';
+import { uploadFileToFolderRouter } from './routes/Files/uploadFileToFolder.router';
+import { signOutRouter } from './routes/Auth/signOut.router';
+import { getPendingFiles } from './controllers/admin.controller';
+import { getPendingFilesRouter } from './routes/Admin/getPendingUploads.router';
+import { flagFileRouter } from './routes/Admin/flagFile.router';
+import { unFlagFileRouter } from './routes/Admin/unflagFile.router';
+import { flagFileAsUnsafeRouter } from './routes/Admin/flagFileAsUnsafe.router';
+import { AuthenticationError } from './responses/errors';
+
+dotenv.config();
+const app = express();
+
+// middleware
+app.use(express.json());
+
+// Auth
+app.use(signUpRouter);
+app.use(signInRouter);
+app.use(signOutRouter);
+
+// Upload / Download
+app.use(uploadFileRouter);
+app.use(uploadFileToFolderRouter);
+// app.use(uploadFilesRouter);
+app.use(downloadFileRouter);
+
+app.use(getPendingFilesRouter);
+
+app.use(flagFileRouter);
+app.use(unFlagFileRouter);
+app.use(flagFileAsUnsafeRouter);
+
+
+app.disable('x-powered-by');
+app.use(
+  morgan((tokens, req, res) => {
+    return JSON.stringify({
+      method: tokens.method(req, res),
+      url: tokens.url(req, res),
+      status_code: tokens.status(req, res),
+      content_length: tokens.res(req, res, 'content-length'),
+      duration: `${tokens['response-time'](req, res)}ms`,
+    });
+  }),
+);
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof AuthenticationError) {
+    return res.status(401).json({
+      status: 'error',
+      message: err.message,
+    });
+  }
+
+  console.error(err);
+  res.status(500).json({
+    status: 'error',
+    message: 'Internal server error',
+  });
+});
+
+export default app;
