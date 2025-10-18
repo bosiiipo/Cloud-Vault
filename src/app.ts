@@ -39,6 +39,10 @@ app.use(flagFileRouter);
 app.use(unFlagFileRouter);
 app.use(flagFileAsUnsafeRouter);
 
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({ message: 'Welcome to Cloud Vault!' });
+});
+
 app.disable('x-powered-by');
 app.use(
   morgan((tokens, req, res) => {

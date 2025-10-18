@@ -36,6 +36,9 @@ app.use(getPendingUploads_router_1.getPendingFilesRouter);
 app.use(flagFile_router_1.flagFileRouter);
 app.use(unflagFile_router_1.unFlagFileRouter);
 app.use(flagFileAsUnsafe_router_1.flagFileAsUnsafeRouter);
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'Welcome to Cloud Vault!' });
+});
 app.disable('x-powered-by');
 app.use((0, morgan_1.default)((tokens, req, res) => {
     return JSON.stringify({
