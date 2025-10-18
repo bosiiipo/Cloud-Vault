@@ -18,6 +18,7 @@ const uploadService = new upload_service_1.UploadService();
 const uploadSingleFile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
+        console.log(">>>>>>>>");
         const file = req.file;
         const folderName = req.query.folderName;
         if (!file) {

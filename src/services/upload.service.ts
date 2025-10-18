@@ -45,7 +45,7 @@ export class UploadService {
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: key,
-      Body: file.buffer,
+      Body: file.buffer as Uint8Array,
       ContentType: file.mimetype,
     });
 

@@ -14,7 +14,6 @@
     "lint": "gts lint",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "clean": "gts clean",
-    "compile": "tsc",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "postinstall": "npm run prisma:migrate && npm run prisma:generate"
@@ -37,6 +36,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "pino": "^10.0.0",
     "redis": "^4.7.1",
     "uuid": "^13.0.0"
   },

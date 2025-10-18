@@ -1,0 +1,54 @@
+FROM node:20.11.0-bullseye AS build
+ARG DATABASE_URL
+ARG PORT=8080
+ARG JWT_SECRET
+ARG API
+ARG SALT_FACTOR
+ARG R2_ENDPOINT
+ARG R2_ACCESS_ID
+ARG R2_SECRET_ACCESS_KEY
+ARG S3_BUCKET
+ARG UPSTASH_REDIS_REST_URL
+ARG UPSTASH_REDIS_REST_TOKEN
+ARG REDIS_PATH
+ARG NODE_ENV
+
+
+ENV DATABASE_URL $DATABASE_URL
+ENV PORT $PORT
+ENV JWT_SECRET $JWT_SECRET
+ENV NODE_ENV $NODE_ENV
+ENV API $API
+ENV SALT_FACTOR $SALT_FACTOR
+ENV R2_ACCESS_ID $R2_ACCESS_ID
+ENV R2_ENDPOINT $R2_ENDPOINT
+ENV R2_SECRET_ACCESS_KEY $R2_SECRET_ACCESS_KEY
+ENV S3_BUCKET $S3_BUCKET
+ENV UPSTASH_REDIS_REST_TOKEN $R2_ENDPOINT
+ENV UPSTASH_REDIS_REST_URL $UPSTASH_REDIS_REST_URL
+ENV REDIS_PATH $REDIS_PATH
+
+# Set working directory
+WORKDIR /usr/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --loglevel verbose
+
+# Copy the rest of the application
+COPY . .
+
+# Build the application
+RUN npm run compile
+
+FROM node:alpine as main
+
+COPY --from=build /usr/app /
+
+# Expose port
+EXPOSE 8080
+
+# Start the app
+CMD ["npm", "start"]

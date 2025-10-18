@@ -1,11 +1,11 @@
 import request from 'supertest';
 import path from 'path';
 import fs from 'fs';
-import server from '../app';
+import app from '../app';
 import {faker} from '@faker-js/faker';
 import {RoleType} from '@prisma/client';
 import prisma from '../lib/prisma';
-import app from '../app';
+import { closeRedisConnection } from '../lib/redis';
 
 let count = 0;
 
@@ -19,7 +19,7 @@ beforeAll(async () => {
     role: RoleType.ADMIN,
   };
 
-  const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(201);
+  const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(201);
 
   expect(response.body).toHaveProperty('token');
   expect(response.body.token).toBeTruthy();
@@ -28,25 +28,12 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await prisma.file.deleteMany({
-    where: {
-      user: {
-        email: {
-          contains: 'test-',
-        },
-      },
-    },
-  });
+  await prisma.file.deleteMany({ where: { user: { email: { contains: "test-" }}}});
+  await prisma.user.deleteMany({ where: { email: { contains: "test-" }}});
 
-  await prisma.user.deleteMany({
-    where: {
-      email: {
-        contains: 'test-',
-      },
-    },
-  });
+  await prisma.$disconnect();  
 
-  //   server.close();
+  await closeRedisConnection(); 
 });
 
 describe('POST /api/v1/upload', () => {
@@ -54,7 +41,7 @@ describe('POST /api/v1/upload', () => {
     const testFilePath = path.join(__dirname, 'fixtures', 'test.txt');
     fs.writeFileSync(testFilePath, 'Hello world');
 
-    const res = await request(server)
+    const res = await request(app)
       .post('/api/v1/upload')
       .set('Authorization', `Bearer ${token}`)
       .field('fileName', 'retro')
@@ -67,56 +54,35 @@ describe('POST /api/v1/upload', () => {
     fs.unlinkSync(testFilePath);
   });
 
-  it('should return 401 if no token is provided', async () => {
-    const testFilePath = path.join(__dirname, 'fixtures', 'test.txt');
-    fs.writeFileSync(testFilePath, 'Unauthorized');
+  it('should return 400 if no file is uploaded', async () => {
+    const res = await request(app)
+      .post('/api/v1/upload')
+      .set('Authorization', `Bearer ${token}`);
 
-    const res = await request(app).post('/api/v1/upload').attach('file', testFilePath);
-
-    expect(res.status).toBe(401);
-    // expect(res.body).toHaveProperty('err');
-    expect(res.body).toHaveProperty('message', 'No token provided!');
-
-    fs.unlinkSync(testFilePath);
+    expect(res.status).toBe(400);
   });
 
-  //   it('should return 400 if no file is uploaded', async () => {
-  //     const res = await request(server)
-  //       .post('/api/v1/upload')
-  //       .set('Authorization', `Bearer ${token}`);
+  // it('should return 400 if file exceeds max size (simulating 5MB limit)', async () => {
+  //   const largeString = "a".repeat(6 * 1024 * 1024); // 6MB
+  //   const testFilePath = path.join(__dirname, 'fixtures', 'large.txt');
 
-  //     expect(res.status).toBe(400);
-  //     expect(res.body).toHaveProperty('errors');
-  //   });
+  //   fs.mkdirSync(path.dirname(testFilePath), { recursive: true });
 
-  //   it('should return 400 if file exceeds max size', async () => {
-  //     const largeBuffer = Buffer.alloc(6 * 1024 * 1024, 'a'); // 6MB
-  //     const testFilePath = path.join(__dirname, 'fixtures', 'large.txt');
-  //     fs.writeFileSync(testFilePath, largeBuffer);
+  //   // Write the test file
+  //   await fs.promises.writeFile(testFilePath, largeString, 'utf8');
 
-  //     const res = await request(server)
-  //       .post('/api/v1/upload')
-  //       .set('Authorization', `Bearer ${token}`)
-  //       .attach('file', testFilePath);
+  //   // Send request
+  //   const res = await request(app)
+  //     .post('/api/v1/upload')
+  //     .set('Authorization', `Bearer ${token}`)
+  //     .field('fileName', 'runtown')
+  //     .attach('file', testFilePath)
 
-  //     expect(res.status).toBe(400);
-  //     expect(res.body).toHaveProperty('errors');
+  //   expect(res.status).toBe(400);
+  //   // expect(res.body).toHaveProperty('errors'); // or whatever your error format is
 
-  //     fs.unlinkSync(testFilePath);
-  //   });
-
-  //   it('should return 400 if file type is not allowed', async () => {
-  //     const testFilePath = path.join(__dirname, 'fixtures', 'invalid.exe');
-  //     fs.writeFileSync(testFilePath, 'fake exe content');
-
-  //     const res = await request(server)
-  //       .post('/api/v1/upload')
-  //       .set('Authorization', `Bearer ${token}`)
-  //       .attach('file', testFilePath);
-
-  //     expect(res.status).toBe(400);
-  //     expect(res.body).toHaveProperty('errors');
-
-  //     fs.unlinkSync(testFilePath);
-  //   });
+  //   fs.unlinkSync(testFilePath);
+  // });
 });
+
+

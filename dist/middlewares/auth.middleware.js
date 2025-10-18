@@ -17,12 +17,13 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
 const redis_1 = require("../lib/redis");
 const client_1 = require("@prisma/client");
-const errors_1 = require("../responses/errors");
 const authenticateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("AUTHENTICATE USER");
         const authHeader = req.headers.authorization;
         if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
-            return new errors_1.AuthenticationError('No token provided!');
+            // throw new AuthenticationError('No token provided!');
+            return res.status(401).json({ message: 'No token provided!' });
             // return res.status(401).json({
             //   status: 'error',
             //   message: 'No token provided',
@@ -30,7 +31,8 @@ const authenticateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         }
         const token = authHeader.split(' ')[1];
         if (!token) {
-            return new errors_1.AuthenticationError('No token provided!');
+            // return new AuthenticationError('No token provided!');
+            return res.status(401).json({ message: 'No token provided!' });
         }
         if (!config_1.config.jwtSecret) {
             throw new Error('JWT secret is not configured');
@@ -38,7 +40,7 @@ const authenticateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         try {
             const decoded = jsonwebtoken_1.default.verify(token, config_1.config.jwtSecret);
             if (!decoded.userId) {
-                throw new jsonwebtoken_1.default.JsonWebTokenError('Invalid token payload');
+                return res.status(401).json({ message: 'Invalid token payload' });
             }
             const sessionKey = `session:${decoded.sessionId}`;
             const redisClient = yield (0, redis_1.getRedisConnection)();

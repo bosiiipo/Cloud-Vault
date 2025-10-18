@@ -1,11 +1,12 @@
 import request from 'supertest';
-import server from '../app';
+import app from '../app';
 import prisma from '../lib/prisma';
 import {closeRedisConnection, getRedisConnection} from '../lib/redis';
 import {faker} from '@faker-js/faker';
 import {RoleType} from '@prisma/client';
+import { RedisClientType } from 'redis';
 
-let redis: unknown;
+let redis: RedisClientType;
 const sessionIds: string[] = [];
 
 beforeAll(async () => {
@@ -23,7 +24,7 @@ afterAll(async () => {
 
   if (redis && sessionIds.length > 0) {
     const keys = sessionIds.map(id => `session:${id}`);
-    await redis.del(...keys);
+    await redis.del(keys);
   }
 
   await prisma.$disconnect();
@@ -31,8 +32,6 @@ afterAll(async () => {
   if (redis) {
     await closeRedisConnection();
   }
-
-  //   server.close()
 });
 
 describe('Auth API Integration Tests', () => {
@@ -45,7 +44,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.ADMIN,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(201);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(201);
 
       expect(response.body).toHaveProperty('token');
       expect(response.body.token).toBeTruthy();
@@ -59,7 +58,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(201);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(201);
 
       expect(response.body).toHaveProperty('token');
       expect(response.body.token).toBeTruthy();
@@ -72,7 +71,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(400);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(400);
 
       expect(response.body).toHaveProperty('errors');
     });
@@ -84,7 +83,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(400);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(400);
 
       expect(response.body).toHaveProperty('errors');
     });
@@ -96,7 +95,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(400);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(400);
 
       expect(response.body).toHaveProperty('errors');
     });
@@ -109,7 +108,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(201);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(201);
 
       expect(response.body).toHaveProperty('token');
       expect(response.body.token).toBeTruthy();
@@ -121,7 +120,7 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const res = await request(server)
+      const res = await request(app)
         .post('/api/v1/auth/signup')
         .send(userWithDuplicateEmail)
         .expect(409);
@@ -143,13 +142,13 @@ describe('Auth API Integration Tests', () => {
         role: RoleType.USER,
       };
 
-      const response = await request(server).post('/api/v1/auth/signup').send(fakeUser).expect(201);
+      const response = await request(app).post('/api/v1/auth/signup').send(fakeUser).expect(201);
 
       expect(response.body).toHaveProperty('token');
     });
 
     it('should login successfully with correct credentials', async () => {
-      const response = await request(server)
+      const response = await request(app)
         .post('/api/v1/auth/signin')
         .send({
           email: existingEmail,
@@ -162,7 +161,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 404 if email is not found', async () => {
-      const response = await request(server)
+      const response = await request(app)
         .post('/api/v1/auth/signin')
         .send({
           email: faker.internet.email(),
@@ -174,7 +173,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 401 if password is invalid', async () => {
-      const response = await request(server)
+      const response = await request(app)
         .post('/api/v1/auth/signin')
         .send({
           email: existingEmail,
@@ -186,7 +185,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 400 if email is missing', async () => {
-      const response = await request(server)
+      const response = await request(app)
         .post('/api/v1/auth/signin')
         .send({
           password,
@@ -197,7 +196,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 400 if password is missing', async () => {
-      const response = await request(server)
+      const response = await request(app)
         .post('/api/v1/auth/signin')
         .send({
           email: existingEmail,
@@ -221,7 +220,7 @@ describe('Auth API Integration Tests', () => {
 
     beforeAll(async () => {
       // Signup
-      const signupRes = await request(server)
+      const signupRes = await request(app)
         .post('/api/v1/auth/signup')
         .send(testUser)
         .expect(201);
@@ -234,21 +233,21 @@ describe('Auth API Integration Tests', () => {
       sessionId = decoded.sessionId;
     });
 
-    afterAll(async () => {
-      const redisClient = await getRedisConnection();
-      await redisClient.del(`session:${sessionId}`);
-      await redisClient.quit();
-    });
+    // afterAll(async () => {
+    //   const redis = await getRedisConnection();
+    //   await redis.del(`session:${sessionId}`);
+    //   await redis.quit();
+    // });
 
     it('should log out successfully and remove session from Redis', async () => {
-      const redisClient = await getRedisConnection();
+      // const redis = await getRedisConnection();
 
       // Ensure session exists before signOut
-      const sessionBefore = await redisClient.get(`session:${sessionId}`);
+      const sessionBefore = await redis.get(`session:${sessionId}`);
       expect(sessionBefore).not.toBeNull();
 
       // Call signOut
-      const res = await request(server)
+      const res = await request(app)
         .post('/api/v1/auth/signOut')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
@@ -256,7 +255,7 @@ describe('Auth API Integration Tests', () => {
       expect(res.body.message).toBe('Logged out successfully');
 
       // Ensure session is removed
-      const sessionAfter = await redisClient.get(`session:${sessionId}`);
+      const sessionAfter = await redis.get(`session:${sessionId}`);
       expect(sessionAfter).toBeNull();
     });
   });

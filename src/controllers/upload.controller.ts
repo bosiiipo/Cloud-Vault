@@ -8,6 +8,8 @@ const uploadService = new UploadService();
 
 export const uploadSingleFile = async (req: Request, res: Response) => {
   try {
+
+    console.log(">>>>>>>>")
     const file = req.file;
 
     const folderName = req.query.folderName as string | undefined;
@@ -28,9 +30,6 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
   } catch (error: unknown) {
     if (error instanceof AppError) {
       return res.status(error.statusCode).json({err: error.message});
-    } else {
-      // eslint-disable-next-line no-console
-      console.error('An unknown error occurred');
     }
 
     res.status(StatusCode.SERVER_ERROR).json({err: 'An unknown error occurred'});
