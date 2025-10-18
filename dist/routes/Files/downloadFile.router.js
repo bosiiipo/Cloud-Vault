@@ -15,4 +15,4 @@ const api = config_1.config.api;
 const router = (0, express_1.Router)();
 exports.downloadFileRouter = router;
 const upload = (0, multer_1.default)();
-router.post(`${api}/download`, auth_middleware_1.authenticateUser, upload.single("file"), upload_controller_1.generateDownloadUrl);
+router.post(`${api}/download`, auth_middleware_1.authenticateUser, upload.single('file'), upload_controller_1.generateDownloadUrl);

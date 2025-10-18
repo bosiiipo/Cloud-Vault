@@ -65,12 +65,12 @@ const flagFile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { fileId } = req.params;
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!adminId) {
-            return res.status(401).json({ error: "Unauthorized: Admin ID is required" });
+            return res.status(401).json({ error: 'Unauthorized: Admin ID is required' });
         }
         const input = {
             fileId,
             adminId,
-            reason: req.body.reason
+            reason: req.body.reason,
         };
         const data = yield adminService.flagFile(input);
         const sanitizedFile = Object.assign(Object.assign({}, data.file), { size: Number(data.file.size) });
@@ -96,12 +96,12 @@ const flagFileAsUnsafe = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!adminId) {
-            return res.status(401).json({ error: "Unauthorized: Admin ID is required" });
+            return res.status(401).json({ error: 'Unauthorized: Admin ID is required' });
         }
         const input = {
             reason,
             fileId,
-            adminId
+            adminId,
         };
         const data = yield adminService.flagFileAsUnsafe(input);
         const sanitizedFile = Object.assign(Object.assign({}, data.file), { size: Number(data.file.size) });
@@ -123,12 +123,12 @@ const unFlagFile = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { fileId } = req.params;
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!adminId) {
-            return res.status(401).json({ error: "Unauthorized: Admin ID is required" });
+            return res.status(401).json({ error: 'Unauthorized: Admin ID is required' });
         }
         const input = {
             fileId,
             adminId,
-            reason: req.body.reason
+            reason: req.body.reason,
         };
         const data = yield adminService.unflagFile(input);
         const sanitizedFile = Object.assign(Object.assign({}, data.file), { size: Number(data.file.size) });

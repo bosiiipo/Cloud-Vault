@@ -11,9 +11,7 @@ exports.validateRegister = [
         .isIn(['USER', 'ADMIN'])
         .withMessage('Invalid role. Allowed values: USER, ADMIN')
         .toUpperCase(),
-    (0, express_validator_1.body)('password')
-        .isLength({ min: 12 })
-        .withMessage('Password must be at least 12 characters long'),
+    (0, express_validator_1.body)('password').isLength({ min: 12 }).withMessage('Password must be at least 12 characters long'),
     (req, res, next) => {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {

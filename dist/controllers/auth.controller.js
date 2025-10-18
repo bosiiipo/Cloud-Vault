@@ -45,42 +45,62 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logout = exports.loginUser = exports.registerUser = void 0;
 const authService = __importStar(require("../services/auth.service"));
 const redis_1 = require("../lib/redis");
+const errors_1 = require("../responses/errors");
+const responses_1 = require("../responses");
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = yield authService.createUser(req.body);
-        res.status(201).json({ message: 'User registered successfully', data });
+        const token = yield authService.createUser(req.body);
+        res.status(201).json({
+            message: 'User registered successfully',
+            token,
+        });
     }
     catch (err) {
-        if (err instanceof Error) {
-            res.status(400).json({ err: err.message });
+        if (err instanceof errors_1.AppError) {
+            return res.status(err.statusCode).json({ err: err.message });
         }
-        else {
-            res.status(400).json({ err: 'An unknown error occurred' });
-        }
+        res.status(responses_1.StatusCode.SERVER_ERROR).json({ err: 'An unknown error occurred' });
     }
 });
 exports.registerUser = registerUser;
 const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = yield authService.loginUser(req.body);
-        res.status(200).json({ message: 'User signed in successfully', data });
+        const token = yield authService.loginUser(req.body);
+        res.status(200).json({
+            message: 'User signed in successfully',
+            token,
+        });
     }
     catch (err) {
-        if (err instanceof Error) {
-            res.status(400).json({ err: err.message });
+        if (err instanceof errors_1.AppError) {
+            return res.status(err.statusCode).json({ err: err.message });
         }
-        else {
-            res.status(400).json({ err: 'An unknown error occurred' });
-        }
+        res.status(responses_1.StatusCode.SERVER_ERROR).json({ err: 'An unknown error occurred' });
     }
 });
 exports.loginUser = loginUser;
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    if ((_a = req.user) === null || _a === void 0 ? void 0 : _a.sessionId) {
+    try {
+        if (!req.user || !req.user.sessionId) {
+            return res.status(responses_1.StatusCode.OK).json({ message: 'No active session' });
+        }
         const redisClient = yield (0, redis_1.getRedisConnection)();
-        yield redisClient.del(`session:${req.user.sessionId}`);
+        const sessionKey = `session:${req.user.sessionId}`;
+        const existingSession = yield redisClient.get(sessionKey);
+        if (!existingSession) {
+            return res.status(responses_1.StatusCode.OK).json({ message: 'Session already ended' });
+        }
+        yield redisClient.del(sessionKey);
+        return res.status(responses_1.StatusCode.OK).json({ message: 'Logged out successfully' });
     }
-    res.status(200).json({ message: "Logged out successfully" });
+    catch (error) {
+        let message = 'An error occurred while logging out';
+        if (error instanceof Error) {
+            // eslint-disable-next-line no-console
+            console.error('Logout error:', error.message);
+            message = error.message;
+        }
+        return res.status(responses_1.StatusCode.SERVER_ERROR).json({ err: message });
+    }
 });
 exports.logout = logout;

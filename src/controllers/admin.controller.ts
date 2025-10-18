@@ -1,6 +1,5 @@
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import * as adminService from '../services/admin.service';
-import { getRedisConnection } from '../lib/redis';
 
 export const getPendingFiles = async (req: Request, res: Response) => {
   try {
@@ -17,28 +16,28 @@ export const getPendingFiles = async (req: Request, res: Response) => {
 
 export const flagFile = async (req: Request, res: Response) => {
   try {
-    const { fileId } = req.params;
+    const {fileId} = req.params;
 
     const adminId = req.user?.userId;
 
     if (!adminId) {
-      return res.status(401).json({ error: "Unauthorized: Admin ID is required" });
+      return res.status(401).json({error: 'Unauthorized: Admin ID is required'});
     }
 
     const input = {
       fileId,
       adminId,
-      reason: req.body.reason
+      reason: req.body.reason,
     };
 
     const data = await adminService.flagFile(input);
 
     const sanitizedFile = {
       ...data.file,
-      size: Number(data.file.size)
+      size: Number(data.file.size),
     };
 
-    res.status(200).json({ ...data, file: sanitizedFile });    
+    res.status(200).json({...data, file: sanitizedFile});
   } catch (err) {
     if (err instanceof Error) {
       res.status(400).json({err: err.message});
@@ -50,34 +49,34 @@ export const flagFile = async (req: Request, res: Response) => {
 
 export const flagFileAsUnsafe = async (req: Request, res: Response) => {
   try {
-    const { fileId } = req.params;
+    const {fileId} = req.params;
 
-    const { reason } = req.body;
+    const {reason} = req.body;
 
     if (!reason) {
-      return res.status(400).json({ error: 'Reason is required' });
+      return res.status(400).json({error: 'Reason is required'});
     }
 
     const adminId = req.user?.userId;
 
     if (!adminId) {
-      return res.status(401).json({ error: "Unauthorized: Admin ID is required" });
+      return res.status(401).json({error: 'Unauthorized: Admin ID is required'});
     }
 
     const input = {
       reason,
       fileId,
-      adminId
-    }
+      adminId,
+    };
 
     const data = await adminService.flagFileAsUnsafe(input);
 
     const sanitizedFile = {
       ...data.file,
-      size: Number(data.file.size)
+      size: Number(data.file.size),
     };
 
-    res.status(200).json({ ...data, file: sanitizedFile });
+    res.status(200).json({...data, file: sanitizedFile});
   } catch (err) {
     if (err instanceof Error) {
       res.status(400).json({err: err.message});
@@ -89,25 +88,25 @@ export const flagFileAsUnsafe = async (req: Request, res: Response) => {
 
 export const unFlagFile = async (req: Request, res: Response) => {
   try {
-    const { fileId } = req.params;
+    const {fileId} = req.params;
 
     const adminId = req.user?.userId;
 
     if (!adminId) {
-      return res.status(401).json({ error: "Unauthorized: Admin ID is required" });
+      return res.status(401).json({error: 'Unauthorized: Admin ID is required'});
     }
 
     const input = {
       fileId,
       adminId,
-      reason: req.body.reason
+      reason: req.body.reason,
     };
 
     const data = await adminService.unflagFile(input);
 
     const sanitizedFile = {
       ...data.file,
-      size: Number(data.file.size)
+      size: Number(data.file.size),
     };
 
     res.status(200).json(sanitizedFile);
@@ -119,6 +118,3 @@ export const unFlagFile = async (req: Request, res: Response) => {
     }
   }
 };
-
-
-

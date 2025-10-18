@@ -11,5 +11,5 @@ export const config = {
   r2Endpoint: process.env.R2_ENDPOINT,
   r2AccessKeyId: process.env.R2_ACCESS_KEY_ID,
   r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-  s3Bucket: process.env.S3_BUCKET
+  s3Bucket: process.env.S3_BUCKET,
 };

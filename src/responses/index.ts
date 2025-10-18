@@ -1,5 +1,6 @@
 import {Response} from 'express';
 
+/* eslint-disable no-unused-vars */
 export enum StatusCode {
   OK = 200,
   CREATED = 201,
@@ -20,7 +21,6 @@ export enum StatusCode {
   SERVICE_UNAVAILABLE = 503,
   GATEWAY_TIMEOUT = 504,
 }
-
 
 export const sendSuccessResponse = (
   response: Response,

@@ -22,9 +22,9 @@ const config_1 = require("../config");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 class UploadService {
     constructor() {
-        this.env = config_1.config.nodeEnv || "development";
+        this.env = config_1.config.nodeEnv || 'development';
         this.s3 = new client_s3_1.S3Client({
-            region: "auto",
+            region: 'auto',
             endpoint: config_1.config.r2Endpoint,
             credentials: {
                 accessKeyId: config_1.config.r2AccessKeyId,
@@ -35,8 +35,10 @@ class UploadService {
     uploadFile(file, bucketType, userId, folderName) {
         return __awaiter(this, void 0, void 0, function* () {
             const ext = (0, path_1.extname)(file.originalname);
-            const timestamp = (0, date_fns_1.format)(new Date(), "yyyy-MM-dd_HH-mm-ss");
-            const key = folderName ? `${folderName}/${(0, cuid2_1.createId)()}-${timestamp}${ext}` : `${(0, cuid2_1.createId)()}-${timestamp}${ext}`;
+            const timestamp = (0, date_fns_1.format)(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+            const key = folderName
+                ? `${folderName}/${(0, cuid2_1.createId)()}-${timestamp}${ext}`
+                : `${(0, cuid2_1.createId)()}-${timestamp}${ext}`;
             const bucketName = this.resolveBucket(bucketType);
             const command = new client_s3_1.PutObjectCommand({
                 Bucket: bucketName,
@@ -45,17 +47,6 @@ class UploadService {
                 ContentType: file.mimetype,
             });
             yield this.s3.send(command);
-            // const fileRecord = await prisma.file.create({
-            //   data: {
-            //     userId,
-            //     s3Key: key,
-            //     fileName: file.originalname,
-            //     size: file.size,
-            //     contentType: file.mimetype,
-            //     // bucketType: 'cloud-vault',
-            //     folderName: folderName || null,
-            //   },
-            // });
             let folderId = null;
             if (folderName) {
                 const folder = yield prisma_1.default.folder.findFirst({
@@ -77,7 +68,7 @@ class UploadService {
                     folderId = newFolder.id;
                 }
             }
-            const fileRecord = yield prisma_1.default.file.create({
+            yield prisma_1.default.file.create({
                 data: {
                     userId,
                     s3Key: key,
@@ -87,25 +78,12 @@ class UploadService {
                     folderId,
                 },
             });
-            console.log({ fileRecord });
             return {
-                message: "File uploaded successfully!",
+                message: 'File uploaded successfully!',
                 key,
             };
         });
     }
-    uploadMultipleFiles(files, bucketType) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log("IMPLEMENT");
-        });
-    }
-    // async uploadMultipleFiles(files: Express.Multer.File[], bucketType: string) {
-    //   const uploads = await Promise.all(files.map((file) => this.uploadFile(file, bucketType)));
-    //   return {
-    //     message: "Files uploaded successfully to R2.",
-    //     uploads,
-    //   };
-    // }
     generateDownloadUrl(fileKey, bucketType) {
         return __awaiter(this, void 0, void 0, function* () {
             const bucketName = this.resolveBucket(bucketType);
@@ -114,8 +92,6 @@ class UploadService {
                 Key: fileKey,
             });
             const url = yield (0, s3_request_presigner_1.getSignedUrl)(this.s3, command, { expiresIn: 60 * 60 });
-            console.log('Generated URL:', url);
-            console.log('URL length:', url.length);
             return { url };
         });
     }
@@ -123,17 +99,17 @@ class UploadService {
         return __awaiter(this, void 0, void 0, function* () {
             const command = new client_s3_1.DeleteObjectCommand({
                 Bucket: bucketType,
-                Key: fileKey
+                Key: fileKey,
             });
             yield this.s3.send(command);
-            return "File deleted successfully!";
+            return 'File deleted successfully!';
         });
     }
     resolveBucket(bucketType) {
         const bucketNames = {
             test: config_1.config.s3Bucket,
         };
-        if (["development", "test", "local"].includes(this.env)) {
+        if (['development', 'test', 'local'].includes(this.env)) {
             return bucketNames.test;
         }
         const bucket = bucketNames[bucketType];

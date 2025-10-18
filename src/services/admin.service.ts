@@ -1,51 +1,46 @@
-import { FileStatus } from '@prisma/client';
-import { config } from '../config';
+import {config} from '../config';
 import prisma from '../lib/prisma';
-import { UploadService } from './upload.service';
-
+import {UploadService} from './upload.service';
 
 export const getPendingUploads = async () => {
   const files = await prisma.file.findMany({
     where: {
-      OR: [
-        { isFlagged: true },
-        { status: 'FLAGGED' }
-      ]
+      OR: [{isFlagged: true}, {status: 'FLAGGED'}],
     },
     include: {
       user: {
-        select: { id: true, email: true, fullName: true }
+        select: {id: true, email: true, fullName: true},
       },
       reviews: {
         include: {
-          admin: { select: { email: true, fullName: true } }
+          admin: {select: {email: true, fullName: true}},
         },
-        orderBy: { createdAt: 'desc' }
-      }
+        orderBy: {createdAt: 'desc'},
+      },
     },
     // orderBy: { flaggedAt: 'desc' }
   });
   return files;
 };
 
-export const flagFile = async (input: {fileId: string; reason: string; adminId: string;}) => {
-  const { fileId, reason, adminId } = input;
+export const flagFile = async (input: {fileId: string; reason: string; adminId: string}) => {
+  const {fileId, reason, adminId} = input;
 
   const file = await prisma.file.findUnique({
-    where: { id: fileId },
-    include: { user: true }
+    where: {id: fileId},
+    include: {user: true},
   });
 
   if (!file) {
-    throw new Error("File not found!");
+    throw new Error('File not found!');
   }
 
   if (file.isDeleted) {
-    throw new Error("File has been deleted!");
+    throw new Error('File has been deleted!');
   }
 
   if (file.isFlagged) {
-    throw new Error("File has been flagged already!");
+    throw new Error('File has been flagged already!');
   }
 
   const review = await prisma.fileReview.create({
@@ -54,41 +49,45 @@ export const flagFile = async (input: {fileId: string; reason: string; adminId: 
       adminId,
       verdict: 'PENDING',
       reason,
-    }
+    },
   });
 
   // Update file status
   const updatedFile = await prisma.file.update({
-    where: { id: fileId },
+    where: {id: fileId},
     data: {
-      status: "FLAGGED",
+      status: 'FLAGGED',
       isFlagged: true,
-      flaggedBy: adminId
-    }
+      flaggedBy: adminId,
+    },
   });
 
   return {
     success: true,
     file: updatedFile,
     review,
-    message: "File flagged successfully!"
+    message: 'File flagged successfully!',
   };
 };
 
-export const flagFileAsUnsafe = async (input: {fileId: string; reason: string; adminId: string;}) => {
-  const { fileId, reason, adminId,  } = input;
+export const flagFileAsUnsafe = async (input: {
+  fileId: string;
+  reason: string;
+  adminId: string;
+}) => {
+  const {fileId, reason, adminId} = input;
 
   const file = await prisma.file.findUnique({
-    where: { id: fileId },
-    include: { user: true }
+    where: {id: fileId},
+    include: {user: true},
   });
 
   if (!file) {
-    throw new Error("File not found!");
+    throw new Error('File not found!');
   }
 
   if (file.isDeleted) {
-    throw new Error("File has been deleted!");
+    throw new Error('File has been deleted!');
   }
 
   const review = await prisma.fileReview.create({
@@ -97,19 +96,19 @@ export const flagFileAsUnsafe = async (input: {fileId: string; reason: string; a
       adminId,
       verdict: 'REJECTED',
       reason,
-    }
+    },
   });
 
   const updatedFile = await prisma.file.update({
-    where: { id: fileId },
+    where: {id: fileId},
     data: {
-      status: "UNSAFE",
+      status: 'UNSAFE',
       isFlagged: true,
       flaggedBy: adminId,
       isDeleted: true,
       deletedAt: new Date(),
-      deletedBy: adminId
-    }
+      deletedBy: adminId,
+    },
   });
 
   const uploadService = new UploadService();
@@ -120,24 +119,24 @@ export const flagFileAsUnsafe = async (input: {fileId: string; reason: string; a
     success: true,
     file: updatedFile,
     review,
-    message: 'File deleted successfully!'
+    message: 'File deleted successfully!',
   };
 };
 
-export const unflagFile = async (input: {fileId: string; reason: string; adminId: string;}) => {
-  const { fileId, reason, adminId,  } = input;
+export const unflagFile = async (input: {fileId: string; reason: string; adminId: string}) => {
+  const {fileId, reason, adminId} = input;
 
   const file = await prisma.file.findUnique({
-    where: { id: fileId },
-    include: { user: true }
+    where: {id: fileId},
+    include: {user: true},
   });
 
   if (!file) {
-    throw new Error("File not found!");
+    throw new Error('File not found!');
   }
 
   if (file.isDeleted) {
-    throw new Error("File has been deleted!");
+    throw new Error('File has been deleted!');
   }
 
   const review = await prisma.fileReview.create({
@@ -146,19 +145,18 @@ export const unflagFile = async (input: {fileId: string; reason: string; adminId
       adminId,
       verdict: 'APPROVED',
       reason,
-    }
+    },
   });
 
   // Update file status
   const updatedFile = await prisma.file.update({
-    where: { id: fileId },
+    where: {id: fileId},
     data: {
-      status: "ACTIVE",
+      status: 'ACTIVE',
       isFlagged: false,
       flaggedBy: adminId,
-    }
+    },
   });
-
 
   return {
     success: true,
@@ -166,6 +164,3 @@ export const unflagFile = async (input: {fileId: string; reason: string; adminId
     review,
   };
 };
-
-
-

@@ -3,7 +3,7 @@
     "./coverage",
     "./dist",
     "**/*.test.ts",
-    "jest.config.js",
+    "jest.config.cjs",
     "eslint.config.mjs"
   ],
   "ts-node": {

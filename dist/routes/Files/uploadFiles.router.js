@@ -15,4 +15,4 @@ const api = config_1.config.api;
 const router = (0, express_1.Router)();
 exports.uploadFilesRouter = router;
 const upload = (0, multer_1.default)();
-router.post(`${api}/upload/multiple`, auth_middleware_1.authenticateUser, upload.array("files"), upload_controller_1.uploadMultipleFiles);
+router.post(`${api}/upload/multiple`, auth_middleware_1.authenticateUser, upload.array('files'), upload_controller_1.uploadMultipleFiles);

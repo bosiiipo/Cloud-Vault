@@ -19,18 +19,19 @@ const config_1 = require("../config");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const cuid2_1 = require("@paralleldrive/cuid2");
 const redis_1 = require("../lib/redis");
+const errors_1 = require("../responses/errors");
 const createUser = (input) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fullName, email, role, password } = input;
         if (!fullName)
-            throw new Error("Full name is required!");
+            throw new errors_1.ValidationError('Full name is required!');
         if (!email)
-            throw new Error("Email is required!");
+            throw new errors_1.ValidationError('Email is required!');
         if (!password)
-            throw new Error("Password is required!");
+            throw new errors_1.ValidationError('Password is required!');
         const existingUser = yield prisma_1.default.user.findUnique({ where: { email } });
         if (existingUser) {
-            throw new Error('User with email exists!');
+            throw new errors_1.ConflictError('User with email exists!');
         }
         const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
         const user = yield prisma_1.default.user.create({
@@ -38,8 +39,8 @@ const createUser = (input) => __awaiter(void 0, void 0, void 0, function* () {
                 email,
                 fullName,
                 role,
-                password: hashedPassword
-            }
+                password: hashedPassword,
+            },
         });
         const sessionId = (0, cuid2_1.createId)();
         const jwtToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role, sessionId }, config_1.config.jwtSecret, {
@@ -51,29 +52,33 @@ const createUser = (input) => __awaiter(void 0, void 0, void 0, function* () {
             email: user.email,
             role: user.role,
             sessionId,
-            createdAt: Date.now()
+            createdAt: Date.now(),
         }), { EX: 60 * 60 });
         return jwtToken;
     }
     catch (error) {
-        if (error instanceof Error) {
-            throw new Error(error.message);
-        }
-        else {
-            throw new Error('An unknown error occurred');
-        }
+        if (error instanceof errors_1.AppError)
+            throw error;
+        if (error instanceof Error)
+            throw new errors_1.InternalError(error.message, {});
+        throw new errors_1.InternalError('An unknown error occurred', {});
     }
 });
 exports.createUser = createUser;
 const loginUser = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = input;
+    if (!email)
+        throw new errors_1.ValidationError('Email is required!');
+    if (!password)
+        throw new errors_1.ValidationError('Password is required!');
     const existingUser = yield prisma_1.default.user.findUnique({ where: { email } });
     if (!existingUser) {
-        throw new Error('Account not found!');
+        throw new errors_1.ResourceNotFound('Account not found!', { email });
     }
     const passwordValidated = yield bcryptjs_1.default.compare(password, existingUser.password);
-    if (!passwordValidated)
-        throw new Error('Invalid Password');
+    if (!passwordValidated) {
+        throw new errors_1.AuthenticationError('Invalid password');
+    }
     const sessionId = (0, cuid2_1.createId)();
     const jwtToken = jsonwebtoken_1.default.sign({ userId: existingUser.id, email: existingUser.email, role: existingUser.role, sessionId }, config_1.config.jwtSecret, {
         expiresIn: '3600s',
@@ -84,7 +89,7 @@ const loginUser = (input) => __awaiter(void 0, void 0, void 0, function* () {
         email: existingUser.email,
         role: existingUser.role,
         sessionId,
-        createdAt: Date.now()
+        createdAt: Date.now(),
     }), { EX: 60 * 60 });
     return jwtToken;
 });

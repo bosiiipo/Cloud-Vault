@@ -13,13 +13,14 @@ const uploadFile_router_1 = require("./routes/Files/uploadFile.router");
 const downloadFile_router_1 = require("./routes/Files/downloadFile.router");
 const uploadFileToFolder_router_1 = require("./routes/Files/uploadFileToFolder.router");
 const signOut_router_1 = require("./routes/Auth/signOut.router");
+// import {getPendingFiles} from './controllers/admin.controller';
 const getPendingUploads_router_1 = require("./routes/Admin/getPendingUploads.router");
 const flagFile_router_1 = require("./routes/Admin/flagFile.router");
 const unflagFile_router_1 = require("./routes/Admin/unflagFile.router");
 const flagFileAsUnsafe_router_1 = require("./routes/Admin/flagFileAsUnsafe.router");
+const errors_1 = require("./responses/errors");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const api = config_1.config.api;
 // middleware
 app.use(express_1.default.json());
 // Auth
@@ -45,16 +46,21 @@ app.use((0, morgan_1.default)((tokens, req, res) => {
         duration: `${tokens['response-time'](req, res)}ms`,
     });
 }));
-if (process.env.NODE_ENV !== 'test') {
-    app.listen(config_1.config, () => {
-        console.log(`Server running at ${config_1.config.port}`);
+app.use((err, req, res, next) => {
+    if (err instanceof errors_1.AuthenticationError) {
+        return res.status(401).json({
+            status: 'error',
+            message: err.message,
+        });
+    }
+    res.status(500).json({
+        status: 'error',
+        message: 'Internal server error',
     });
-}
-;
-exports.default = app;
-// Run the seed
-// main()
-//   .catch((e) => {
-//     console.error("Fatal error in main:", e);
-//     process.exit(1);
-//   });
+    next();
+});
+const server = app.listen(config_1.config, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Server running at ${config_1.config.port}`);
+});
+exports.default = server;

@@ -1,21 +1,20 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, {NextFunction, Request, Response} from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import {config} from './config';
 
 import {signUpRouter} from './routes/Auth/signUp.router';
 import {signInRouter} from './routes/Auth/signIn.router';
-import { uploadFileRouter } from './routes/Files/uploadFile.router';
-import { uploadFilesRouter } from './routes/Files/uploadFiles.router';
-import { downloadFileRouter } from './routes/Files/downloadFile.router';
-import { uploadFileToFolderRouter } from './routes/Files/uploadFileToFolder.router';
-import { signOutRouter } from './routes/Auth/signOut.router';
-import { getPendingFiles } from './controllers/admin.controller';
-import { getPendingFilesRouter } from './routes/Admin/getPendingUploads.router';
-import { flagFileRouter } from './routes/Admin/flagFile.router';
-import { unFlagFileRouter } from './routes/Admin/unflagFile.router';
-import { flagFileAsUnsafeRouter } from './routes/Admin/flagFileAsUnsafe.router';
-import { AuthenticationError } from './responses/errors';
+import {uploadFileRouter} from './routes/Files/uploadFile.router';
+import {downloadFileRouter} from './routes/Files/downloadFile.router';
+import {uploadFileToFolderRouter} from './routes/Files/uploadFileToFolder.router';
+import {signOutRouter} from './routes/Auth/signOut.router';
+// import {getPendingFiles} from './controllers/admin.controller';
+import {getPendingFilesRouter} from './routes/Admin/getPendingUploads.router';
+import {flagFileRouter} from './routes/Admin/flagFile.router';
+import {unFlagFileRouter} from './routes/Admin/unflagFile.router';
+import {flagFileAsUnsafeRouter} from './routes/Admin/flagFileAsUnsafe.router';
+import {AuthenticationError} from './responses/errors';
 
 dotenv.config();
 const app = express();
@@ -40,7 +39,6 @@ app.use(flagFileRouter);
 app.use(unFlagFileRouter);
 app.use(flagFileAsUnsafeRouter);
 
-
 app.disable('x-powered-by');
 app.use(
   morgan((tokens, req, res) => {
@@ -54,7 +52,7 @@ app.use(
   }),
 );
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AuthenticationError) {
     return res.status(401).json({
       status: 'error',
@@ -62,11 +60,17 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  console.error(err);
   res.status(500).json({
     status: 'error',
     message: 'Internal server error',
   });
+
+  next();
 });
 
-export default app;
+const server = app.listen(config, () => {
+  // eslint-disable-next-line no-console
+  console.log(`Server running at ${config.port}`);
+});
+
+export default server;

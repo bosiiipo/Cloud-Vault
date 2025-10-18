@@ -16,4 +16,4 @@ const api = config_1.config.api;
 const router = (0, express_1.Router)();
 exports.uploadFileRouter = router;
 const upload = (0, multer_1.default)();
-router.post(`${api}/upload`, auth_middleware_1.authenticateUser, upload.single("file"), file_validation_1.validateFileSize, file_validation_1.validateFileUpload, upload_controller_1.uploadSingleFile);
+router.post(`${api}/upload`, auth_middleware_1.authenticateUser, upload.single('file'), file_validation_1.validateFileSize, file_validation_1.validateFileUpload, upload_controller_1.uploadSingleFile);

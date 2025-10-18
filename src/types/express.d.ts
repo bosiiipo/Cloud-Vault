@@ -1,14 +1,12 @@
 import 'express-serve-static-core';
-
-// JWT payload interface for authentication
-interface JwtUserPayload {
-  userId: string;
-  email: string;
-  iat: number;
-  exp: number;
-  sub?: string;
-  jti?: string;
-}
+// interface JwtUserPayload {
+//   userId: string;
+//   email: string;
+//   iat: number;
+//   exp: number;
+//   sub?: string;
+//   jti?: string;
+// }
 
 import 'express';
 

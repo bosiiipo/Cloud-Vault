@@ -9,18 +9,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRedisConnection = void 0;
+exports.closeRedisConnection = exports.getRedisConnection = void 0;
 const redis_1 = require("redis");
 const REDIS_PATH = process.env.REDIS_PATH || 'redis://127.0.0.1:6379';
+// const REDIS_PATH = 'redis://127.0.0.1:6379';
+let redisClient = null;
 const getRedisConnection = () => __awaiter(void 0, void 0, void 0, function* () {
-    const redisClient = yield (0, redis_1.createClient)({
-        url: REDIS_PATH,
-    })
-        .on('error', err => console.log('Redis Client Error', err))
-        .connect();
+    if (redisClient && redisClient.isOpen) {
+        return redisClient;
+    }
+    redisClient = (0, redis_1.createClient)({ url: REDIS_PATH });
+    yield redisClient.connect();
     return redisClient;
 });
 exports.getRedisConnection = getRedisConnection;
-module.exports = {
-    getRedisConnection: exports.getRedisConnection,
-};
+const closeRedisConnection = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (redisClient && redisClient.isOpen) {
+        yield redisClient.quit();
+        redisClient = null;
+    }
+});
+exports.closeRedisConnection = closeRedisConnection;

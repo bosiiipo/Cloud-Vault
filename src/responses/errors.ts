@@ -1,4 +1,4 @@
-import { StatusCode } from '.';
+import {StatusCode} from '.';
 
 export class AppError extends Error {
   statusCode: StatusCode;
@@ -39,7 +39,7 @@ export class AuthorizationError extends AppError {
 
 export class ResourceNotFound extends AppError {
   constructor(message = 'Resource not found', query?: Record<string, unknown> | string) {
-    const data = typeof query === 'string' ? { query } : query;
+    const data = typeof query === 'string' ? {query} : query;
     super(message, StatusCode.NOT_FOUND, data);
   }
 }

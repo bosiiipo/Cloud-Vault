@@ -10,9 +10,7 @@ export const validateRegister = [
     .isIn(['USER', 'ADMIN'])
     .withMessage('Invalid role. Allowed values: USER, ADMIN')
     .toUpperCase(),
-  body('password')
-    .isLength({min: 12})
-    .withMessage('Password must be at least 12 characters long'),
+  body('password').isLength({min: 12}).withMessage('Password must be at least 12 characters long'),
   (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -36,4 +34,3 @@ export const validateLogin = [
     next();
   },
 ];
-

@@ -1,10 +1,8 @@
-
 import {Router} from 'express';
 import dotenv from 'dotenv';
-import multer from "multer";
-import { authenticateUser, requireAdmin } from '../../middlewares/auth.middleware';
-import { config } from '../../config';
-import * as adminController  from '../../controllers/admin.controller';
+import {authenticateUser, requireAdmin} from '../../middlewares/auth.middleware';
+import {config} from '../../config';
+import * as adminController from '../../controllers/admin.controller';
 
 dotenv.config();
 
@@ -12,12 +10,11 @@ const api = config.api;
 
 const router = Router();
 
-
 router.post(
-    `${api}/admin/file/:fileId/unsafe`,
-    authenticateUser,
-    requireAdmin,
-    adminController.flagFileAsUnsafe
+  `${api}/admin/file/:fileId/unsafe`,
+  authenticateUser,
+  requireAdmin,
+  adminController.flagFileAsUnsafe,
 );
 
 export {router as flagFileAsUnsafeRouter};

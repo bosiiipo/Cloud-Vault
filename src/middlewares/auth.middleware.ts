@@ -1,9 +1,9 @@
 import {Request, Response, NextFunction} from 'express';
 import jwt from 'jsonwebtoken';
 import {config} from '../config';
-import { getRedisConnection } from '../lib/redis';
-import { RoleType } from '@prisma/client';
-import { AuthenticationError, AuthorizationError } from '../responses/errors';
+import {getRedisConnection} from '../lib/redis';
+import {RoleType} from '@prisma/client';
+import {AuthenticationError} from '../responses/errors';
 
 interface JwtUserPayload {
   userId: string;
@@ -22,15 +22,11 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export const authenticateUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
-      return new AuthenticationError('No token provided!')
+      return new AuthenticationError('No token provided!');
       // return res.status(401).json({
       //   status: 'error',
       //   message: 'No token provided',
@@ -39,7 +35,7 @@ export const authenticateUser = async (
 
     const token = authHeader.split(' ')[1];
     if (!token) {
-      return new AuthenticationError('No token provided!')
+      return new AuthenticationError('No token provided!');
     }
 
     if (!config.jwtSecret) {
@@ -59,12 +55,10 @@ export const authenticateUser = async (
 
       const exists = await redisClient.get(sessionKey);
 
-      if (!exists) return res.status(401).json({ error: "Session revoked" });
-
-      console.log({decoded});
+      if (!exists) return res.status(401).json({error: 'Session revoked'});
 
       req.user = decoded;
-      
+
       next();
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
@@ -81,26 +75,31 @@ export const authenticateUser = async (
       }
       throw error;
     }
-  } catch (error) {
-    console.error('Auth middleware error:', error);
+  } catch (error: unknown) {
+    let message = 'An unexpected error occurred';
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
+
     return res.status(500).json({
       status: 'error',
-      message: 'Internal server error during authentication',
+      message,
     });
   }
 };
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({error: 'Unauthorized'});
   }
-  
+
   if (req.user.role !== RoleType.ADMIN) {
-    return res.status(403).json({ 
+    return res.status(403).json({
       error: 'Forbidden - Admin access required',
-      role: req.user.role 
+      role: req.user.role,
     });
   }
-  
+
   next();
 };

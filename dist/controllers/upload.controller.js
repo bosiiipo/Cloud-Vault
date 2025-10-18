@@ -9,9 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadMultipleFiles = exports.generateDownloadUrl = exports.uploadSingleFile = void 0;
+exports.generateDownloadUrl = exports.uploadSingleFile = void 0;
 const upload_service_1 = require("../services/upload.service");
 const config_1 = require("../config");
+const errors_1 = require("../responses/errors");
+const responses_1 = require("../responses");
 const uploadService = new upload_service_1.UploadService();
 const uploadSingleFile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -19,47 +21,45 @@ const uploadSingleFile = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const file = req.file;
         const folderName = req.query.folderName;
         if (!file) {
-            return res.status(400).json({ message: "No file provided" });
+            throw new errors_1.ValidationError('No file provided');
         }
         if (!((_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId)) {
-            throw new Error("userId is required");
+            throw new Error('userId is required');
         }
         const userId = req.user.userId;
-        const result = yield uploadService.uploadFile(file, "cloud-vault", userId, folderName);
+        const result = yield uploadService.uploadFile(file, 'cloud-vault', userId, folderName);
         return res.status(201).json(result);
     }
     catch (error) {
-        return res.status(500).json({ message: "Upload failed", error: error.message });
+        if (error instanceof errors_1.AppError) {
+            return res.status(error.statusCode).json({ err: error.message });
+        }
+        else {
+            // eslint-disable-next-line no-console
+            console.error('An unknown error occurred');
+        }
+        res.status(responses_1.StatusCode.SERVER_ERROR).json({ err: 'An unknown error occurred' });
     }
 });
 exports.uploadSingleFile = uploadSingleFile;
 const generateDownloadUrl = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { key } = req.query;
-        if (!key || typeof key !== "string") {
-            return res.status(400).json({ message: "File key is required" });
+        if (!key || typeof key !== 'string') {
+            return res.status(400).json({ message: 'File key is required' });
         }
         const url = yield uploadService.generateDownloadUrl(key, config_1.config.s3Bucket);
         return res.status(200).json({ url });
     }
     catch (error) {
-        console.error("Generate download URL failed:", error);
-        return res.status(500).json({ message: "Failed to generate download URL", error: error.message });
+        if (error instanceof errors_1.AppError) {
+            return res.status(error.statusCode).json({ err: error.message });
+        }
+        else {
+            // eslint-disable-next-line no-console
+            console.error('An unknown error occurred');
+        }
+        return res.status(responses_1.StatusCode.SERVER_ERROR).json({ err: 'Failed to generate download URL' });
     }
 });
 exports.generateDownloadUrl = generateDownloadUrl;
-const uploadMultipleFiles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const files = req.files;
-        if (!files || files.length === 0) {
-            return res.status(400).json({ message: "No files provided" });
-        }
-        const result = yield uploadService.uploadMultipleFiles(files, "user");
-        return res.status(200).json(result);
-    }
-    catch (error) {
-        console.error("Upload multiple failed:", error);
-        return res.status(500).json({ message: "Upload multiple failed", error: error.message });
-    }
-});
-exports.uploadMultipleFiles = uploadMultipleFiles;

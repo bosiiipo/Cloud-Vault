@@ -1,32 +1,44 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { format } from "date-fns";
-import { extname } from "path";
-import { createId } from "@paralleldrive/cuid2";
-import { config } from "../config";
-import prisma from "../lib/prisma";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
+import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
+import {format} from 'date-fns';
+import {extname} from 'path';
+import {createId} from '@paralleldrive/cuid2';
+import {config} from '../config';
+import prisma from '../lib/prisma';
 
 export class UploadService {
   private s3: S3Client;
   private env: string;
 
   constructor() {
-    this.env = config.nodeEnv || "development";
+    this.env = config.nodeEnv || 'development';
 
     this.s3 = new S3Client({
-      region: "auto",
-      endpoint: config.r2Endpoint!, 
+      region: 'auto',
+      endpoint: config.r2Endpoint!,
       credentials: {
-        accessKeyId: config.r2AccessKeyId!,   
+        accessKeyId: config.r2AccessKeyId!,
         secretAccessKey: config.r2SecretAccessKey!,
       },
     });
   }
 
-  async uploadFile(file: Express.Multer.File, bucketType: string, userId: string, folderName?: string) {
+  async uploadFile(
+    file: Express.Multer.File,
+    bucketType: string,
+    userId: string,
+    folderName?: string,
+  ) {
     const ext = extname(file.originalname);
-    const timestamp = format(new Date(), "yyyy-MM-dd_HH-mm-ss");
-    const key = folderName ? `${folderName}/${createId()}-${timestamp}${ext}` : `${createId()}-${timestamp}${ext}`;
+    const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+    const key = folderName
+      ? `${folderName}/${createId()}-${timestamp}${ext}`
+      : `${createId()}-${timestamp}${ext}`;
 
     const bucketName = this.resolveBucket(bucketType);
 
@@ -38,18 +50,6 @@ export class UploadService {
     });
 
     await this.s3.send(command);
-
-    // const fileRecord = await prisma.file.create({
-    //   data: {
-    //     userId,
-    //     s3Key: key,
-    //     fileName: file.originalname,
-    //     size: file.size,
-    //     contentType: file.mimetype,
-    //     // bucketType: 'cloud-vault',
-    //     folderName: folderName || null,
-    //   },
-    // });
 
     let folderId: string | null = null;
 
@@ -74,61 +74,45 @@ export class UploadService {
       }
     }
 
-    const fileRecord = await prisma.file.create({
+    await prisma.file.create({
       data: {
         userId,
         s3Key: key,
         fileName: file.originalname,
         size: BigInt(file.size),
         contentType: file.mimetype,
-        folderId,  
+        folderId,
       },
     });
 
     return {
-      message: "File uploaded successfully!",
+      message: 'File uploaded successfully!',
       key,
     };
   }
 
-  async uploadMultipleFiles(files: Express.Multer.File[], bucketType: string) {
-    console.log("IMPLEMENT")
-  }
-
-  // async uploadMultipleFiles(files: Express.Multer.File[], bucketType: string) {
-  //   const uploads = await Promise.all(files.map((file) => this.uploadFile(file, bucketType)));
-  //   return {
-  //     message: "Files uploaded successfully to R2.",
-  //     uploads,
-  //   };
-  // }
-
   async generateDownloadUrl(fileKey: string, bucketType: string) {
     const bucketName = this.resolveBucket(bucketType);
-
 
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: fileKey,
     });
 
-    const url = await getSignedUrl(this.s3, command, { expiresIn: 60 * 60 });
+    const url = await getSignedUrl(this.s3, command, {expiresIn: 60 * 60});
 
-    console.log('Generated URL:', url);
-    console.log('URL length:', url.length);
-
-    return { url };
+    return {url};
   }
 
-  async deleteFromS3(fileKey: string, bucketType: string) {    
+  async deleteFromS3(fileKey: string, bucketType: string) {
     const command = new DeleteObjectCommand({
       Bucket: bucketType,
-      Key: fileKey
+      Key: fileKey,
     });
-    
+
     await this.s3.send(command);
 
-    return "File deleted successfully!"
+    return 'File deleted successfully!';
   }
 
   private resolveBucket(bucketType: string): string {
@@ -136,7 +120,7 @@ export class UploadService {
       test: config.s3Bucket!,
     };
 
-    if (["development", "test", "local"].includes(this.env)) {
+    if (['development', 'test', 'local'].includes(this.env)) {
       return bucketNames.test;
     }
 
@@ -145,4 +129,3 @@ export class UploadService {
     return bucket;
   }
 }
-
