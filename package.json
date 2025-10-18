@@ -15,7 +15,8 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "prepare": "npm run compile"
+    "prepare": "npm run compile",
+    "postinstall": "npm run prisma:migrate && npm run prisma:generate"
   },
   "keywords": [],
   "author": "",
