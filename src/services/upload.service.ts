@@ -74,7 +74,7 @@ export class UploadService {
       }
     }
 
-    await prisma.file.create({
+    const newFile = await prisma.file.create({
       data: {
         userId,
         s3Key: key,
@@ -88,6 +88,7 @@ export class UploadService {
     return {
       message: 'File uploaded successfully!',
       key,
+      fileId: newFile.id
     };
   }
 
@@ -113,6 +114,55 @@ export class UploadService {
     await this.s3.send(command);
 
     return 'File deleted successfully!';
+  }
+
+  async createFolderOnS3(
+    folderName: string,
+    bucketType: string,
+    userId: string,
+    parentId?: string
+  ) {
+    const bucketName = this.resolveBucket(bucketType);
+
+    const folderKey = `${folderName}/`;
+
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: folderKey,
+      Body: '', // empty body creates the folder-like prefix
+    });
+
+    await this.s3.send(command);
+
+    const existingFolder = await prisma.folder.findFirst({
+      where: {
+        name: folderName,
+        userId,
+        parentId: parentId ?? null,
+      },
+    });
+
+    if (existingFolder) {
+      return {
+        message: 'Folder already exists',
+        folder: existingFolder,
+      };
+    }
+
+    const newFolder = await prisma.folder.create({
+      data: {
+        name: folderName,
+        userId,
+        parentId: parentId ?? null,
+      },
+    });
+
+    console.log({newFolder});
+
+    return {
+      message: 'Folder created successfully',
+      folder: newFolder,
+    };
   }
 
   private resolveBucket(bucketType: string): string {

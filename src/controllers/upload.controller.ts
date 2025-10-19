@@ -8,8 +8,6 @@ const uploadService = new UploadService();
 
 export const uploadSingleFile = async (req: Request, res: Response) => {
   try {
-
-    console.log(">>>>>>>>")
     const file = req.file;
 
     const folderName = req.query.folderName as string | undefined;
@@ -24,7 +22,7 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
 
     const userId = req.user.userId;
 
-    const result = await uploadService.uploadFile(file, 'cloud-vault', userId, folderName);
+    const result = await uploadService.uploadFile(file, config.s3Bucket!, userId, folderName);
 
     return res.status(201).json(result);
   } catch (error: unknown) {

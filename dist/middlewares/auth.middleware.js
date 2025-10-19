@@ -19,10 +19,8 @@ const redis_1 = require("../lib/redis");
 const client_1 = require("@prisma/client");
 const authenticateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log("AUTHENTICATE USER");
         const authHeader = req.headers.authorization;
         if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
-            // throw new AuthenticationError('No token provided!');
             return res.status(401).json({ message: 'No token provided!' });
             // return res.status(401).json({
             //   status: 'error',
@@ -31,7 +29,6 @@ const authenticateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         }
         const token = authHeader.split(' ')[1];
         if (!token) {
-            // return new AuthenticationError('No token provided!');
             return res.status(401).json({ message: 'No token provided!' });
         }
         if (!config_1.config.jwtSecret) {

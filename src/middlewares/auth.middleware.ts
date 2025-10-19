@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import {config} from '../config';
 import {getRedisConnection} from '../lib/redis';
 import {RoleType} from '@prisma/client';
-import {AuthenticationError} from '../responses/errors';
 
 interface JwtUserPayload {
   userId: string;
@@ -24,7 +23,6 @@ declare module 'express-serve-static-core' {
 
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log("AUTHENTICATE USER")
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'No token provided!' });

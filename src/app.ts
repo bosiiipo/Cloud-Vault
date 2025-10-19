@@ -1,8 +1,8 @@
 import express, {NextFunction, Request, Response} from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import {config} from './config';
 
+// Routes
 import {signUpRouter} from './routes/Auth/signUp.router';
 import {signInRouter} from './routes/Auth/signIn.router';
 import {uploadFileRouter} from './routes/Uploads/uploadFile.router';
@@ -14,8 +14,13 @@ import {getPendingFilesRouter} from './routes/Files/getPendingUploads.router';
 import {flagFileRouter} from './routes/Files/flagFile.router';
 import {unFlagFileRouter} from './routes/Files/unflagFile.router';
 import {flagFileAsUnsafeRouter} from './routes/Files/flagFileAsUnsafe.router';
+import { createFolderRouter } from './routes/Folders/createFolder.router';
+import { getFoldersRouter } from './routes/Folders/getFolders.router';
+import { getFolderRouter } from './routes/Folders/getFolder.router';
+
 import {AuthenticationError} from './responses/errors';
 import errorHandlerMiddleware from './middlewares/errorHandler.middleware';
+
 
 dotenv.config();
 const app = express();
@@ -43,7 +48,6 @@ app.use(signOutRouter);
 // Upload / Download
 app.use(uploadFileRouter);
 app.use(uploadFileToFolderRouter);
-// app.use(uploadFilesRouter);
 app.use(downloadFileRouter);
 
 app.use(getPendingFilesRouter);
@@ -51,6 +55,10 @@ app.use(getPendingFilesRouter);
 app.use(flagFileRouter);
 app.use(unFlagFileRouter);
 app.use(flagFileAsUnsafeRouter);
+
+app.use(createFolderRouter);
+app.use(getFoldersRouter);
+app.use(getFolderRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({ message: 'Welcome to Cloud Vault!' });
