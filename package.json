@@ -10,7 +10,7 @@
     "prisma:studio": "prisma studio --schema=src/prisma/schema.prisma",
     "test": "jest --detectOpenHandles",
     "dev": "nodemon ./src/server.ts",
-    "build": "tsc",
+    "compile": "tsc",
     "lint": "gts lint",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "clean": "gts clean",
