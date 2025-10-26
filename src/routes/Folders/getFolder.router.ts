@@ -10,10 +10,6 @@ const api = config.api;
 
 const router = Router();
 
-router.get(
-  `${api}/folder/:folderId`,
-  authenticateUser,
-  getFolder,
-);
+router.get(`${api}/folder/:folderId`, authenticateUser, getFolder);
 
 export {router as getFolderRouter};

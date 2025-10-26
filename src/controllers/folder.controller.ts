@@ -1,16 +1,15 @@
 import {Request, Response} from 'express';
 import {UploadService} from '../services/upload.service';
 import {config} from '../config';
-import {AppError, ValidationError} from '../responses/errors';
+import {AppError} from '../responses/errors';
 import {StatusCode} from '../responses';
 import * as folderService from '../services/folder.service';
-import { fakerPL } from '@faker-js/faker/.';
 
 const uploadService = new UploadService();
 
 export const createFolder = async (req: Request, res: Response) => {
   try {
-    const { folderName } = req.body;
+    const {folderName} = req.body;
 
     if (!req?.user?.userId) {
       throw new Error('userId is required');
@@ -18,11 +17,7 @@ export const createFolder = async (req: Request, res: Response) => {
 
     const userId = req.user.userId;
 
-    const url = await uploadService.createFolderOnS3(
-      folderName,
-      config.s3Bucket!,
-      userId
-    );
+    const url = await uploadService.createFolderOnS3(folderName, config.s3Bucket!, userId);
 
     return res.status(200).json({url});
   } catch (error: unknown) {
@@ -42,7 +37,7 @@ export const getFolder = async (req: Request, res: Response) => {
     const folderId = req.params.folderId;
 
     if (!req?.user?.userId) {
-      return res.status(401).json({ message: 'Unauthorized: userId is required' });
+      return res.status(401).json({message: 'Unauthorized: userId is required'});
     }
 
     const userId = req.user.userId;
@@ -52,9 +47,9 @@ export const getFolder = async (req: Request, res: Response) => {
     }
 
     const input = {
-      folderId, 
-      userId
-    }
+      folderId,
+      userId,
+    };
 
     const folder = await folderService.getFolder(input);
 
@@ -73,7 +68,7 @@ export const getFolder = async (req: Request, res: Response) => {
 
 export const getAllFolders = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const {userId} = req.params;
 
     const folder = await folderService.getAllFolders(userId);
 

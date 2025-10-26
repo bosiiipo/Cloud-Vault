@@ -4,7 +4,7 @@ import prisma from '../lib/prisma';
 import {closeRedisConnection, getRedisConnection} from '../lib/redis';
 import {faker} from '@faker-js/faker';
 import {RoleType} from '@prisma/client';
-import { RedisClientType } from 'redis';
+import {RedisClientType} from 'redis';
 
 let redis: RedisClientType;
 const sessionIds: string[] = [];
@@ -220,10 +220,7 @@ describe('Auth API Integration Tests', () => {
 
     beforeAll(async () => {
       // Signup
-      const signupRes = await request(app)
-        .post('/api/v1/auth/signup')
-        .send(testUser)
-        .expect(201);
+      const signupRes = await request(app).post('/api/v1/auth/signup').send(testUser).expect(201);
 
       token = signupRes.body.token;
 

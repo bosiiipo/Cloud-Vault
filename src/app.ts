@@ -14,13 +14,12 @@ import {getPendingFilesRouter} from './routes/Files/getPendingUploads.router';
 import {flagFileRouter} from './routes/Files/flagFile.router';
 import {unFlagFileRouter} from './routes/Files/unflagFile.router';
 import {flagFileAsUnsafeRouter} from './routes/Files/flagFileAsUnsafe.router';
-import { createFolderRouter } from './routes/Folders/createFolder.router';
-import { getFoldersRouter } from './routes/Folders/getFolders.router';
-import { getFolderRouter } from './routes/Folders/getFolder.router';
+import {createFolderRouter} from './routes/Folders/createFolder.router';
+import {getFoldersRouter} from './routes/Folders/getFolders.router';
+import {getFolderRouter} from './routes/Folders/getFolder.router';
 
 import {AuthenticationError} from './responses/errors';
-import errorHandlerMiddleware from './middlewares/errorHandler.middleware';
-
+// import errorHandlerMiddleware from './middlewares/errorHandler.middleware';
 
 dotenv.config();
 const app = express();
@@ -61,7 +60,7 @@ app.use(getFoldersRouter);
 app.use(getFolderRouter);
 
 app.get('/', (req: Request, res: Response) => {
-  res.status(200).json({ message: 'Welcome to Cloud Vault!' });
+  res.status(200).json({message: 'Welcome to Cloud Vault!'});
 });
 
 // app.use(errorHandlerMiddleware);

@@ -10,11 +10,6 @@ const api = config.api;
 
 const router = Router();
 
-router.post(
-  `${api}/file/:fileId/flag`,
-  authenticateUser,
-  requireAdmin,
-  adminController.flagFile,
-);
+router.post(`${api}/file/:fileId/flag`, authenticateUser, requireAdmin, adminController.flagFile);
 
 export {router as flagFileRouter};

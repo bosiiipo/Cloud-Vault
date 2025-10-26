@@ -25,12 +25,12 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'No token provided!' });
+      return res.status(401).json({message: 'No token provided!'});
     }
 
     const token = authHeader.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'No token provided!' });
+      return res.status(401).json({message: 'No token provided!'});
     }
 
     if (!config.jwtSecret) {
@@ -41,7 +41,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       const decoded = jwt.verify(token, config.jwtSecret) as JwtUserPayload;
 
       if (!decoded.userId) {
-        return res.status(401).json({ message: 'Invalid token payload' });
+        return res.status(401).json({message: 'Invalid token payload'});
       }
 
       const sessionKey = `session:${decoded.sessionId}`;

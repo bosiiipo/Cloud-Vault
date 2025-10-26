@@ -1,7 +1,5 @@
 import prisma from '../lib/prisma';
-import {
-  ResourceNotFound,
-} from '../responses/errors';
+import {ResourceNotFound} from '../responses/errors';
 
 export interface getFolderInput {
   folderId: string;
@@ -9,47 +7,38 @@ export interface getFolderInput {
 }
 
 export const getFolder = async (input: getFolderInput) => {
-  try {
-    const { folderId, userId } = input;
+  const {folderId, userId} = input;
 
-    const folder = await prisma.folder.findFirst({
-      where: {
-        id: folderId,
-        userId,
-      },
-      include: {
-        files: true,
-        children: true, 
-      },
-    });
+  const folder = await prisma.folder.findFirst({
+    where: {
+      id: folderId,
+      userId,
+    },
+    include: {
+      files: true,
+      children: true,
+    },
+  });
 
-    if (!folder) {
-      throw new ResourceNotFound('Folder not found');
-    }
-
-    return folder;
-  } catch (error) {
-    throw error;
+  if (!folder) {
+    throw new ResourceNotFound('Folder not found');
   }
+
+  return folder;
 };
 
 export const getAllFolders = async (userId?: string) => {
-  try {
-    const whereClause = userId ? { userId } : {};
+  const whereClause = userId ? {userId} : {};
 
-    const folders = await prisma.folder.findMany({
-      where: whereClause,
-      include: {
-        files: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+  const folders = await prisma.folder.findMany({
+    where: whereClause,
+    include: {
+      files: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
 
-    return folders;
-  } catch (error) {
-    throw error;
-  }
+  return folders;
 };
-

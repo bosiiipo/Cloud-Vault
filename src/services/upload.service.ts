@@ -88,7 +88,7 @@ export class UploadService {
     return {
       message: 'File uploaded successfully!',
       key,
-      fileId: newFile.id
+      fileId: newFile.id,
     };
   }
 
@@ -103,6 +103,18 @@ export class UploadService {
     const url = await getSignedUrl(this.s3, command, {expiresIn: 60 * 60});
 
     return {url};
+  }
+
+  async downloadFile(key: string) {
+    // Get object from Cloudflare R2 (S3 API compatible)
+    const command = new GetObjectCommand({
+      Bucket: config.s3Bucket!,
+      Key: key,
+    });
+
+    const file = await this.s3.send(command);
+
+    return file;
   }
 
   async deleteFromS3(fileKey: string, bucketType: string) {
@@ -120,7 +132,7 @@ export class UploadService {
     folderName: string,
     bucketType: string,
     userId: string,
-    parentId?: string
+    parentId?: string,
   ) {
     const bucketName = this.resolveBucket(bucketType);
 
@@ -156,8 +168,6 @@ export class UploadService {
         parentId: parentId ?? null,
       },
     });
-
-    console.log({newFolder});
 
     return {
       message: 'Folder created successfully',

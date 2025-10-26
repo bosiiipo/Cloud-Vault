@@ -5,9 +5,7 @@ import app from '../app';
 import {faker} from '@faker-js/faker';
 import {RoleType} from '@prisma/client';
 import prisma from '../lib/prisma';
-import { closeRedisConnection } from '../lib/redis';
-
-let count = 0;
+import {closeRedisConnection} from '../lib/redis';
 
 let token: string;
 let adminToken: string;
@@ -43,22 +41,17 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  try {
-    await prisma.file.deleteMany({
-      where: { user: { email: { contains: "test-" } } }
-    });
+  await prisma.file.deleteMany({
+    where: {user: {email: {contains: 'test-'}}},
+  });
 
-    await prisma.user.deleteMany({
-      where: { email: { contains: "test-" } }
-    });
+  await prisma.user.deleteMany({
+    where: {email: {contains: 'test-'}},
+  });
 
-    await prisma.$disconnect();
-    await closeRedisConnection();
-  } catch (err) {
-    console.error("Cleanup failed:", err);
-  }
+  await prisma.$disconnect();
+  await closeRedisConnection();
 });
-
 
 describe('Upload file', () => {
   it('should upload a file successfully', async () => {
@@ -79,9 +72,7 @@ describe('Upload file', () => {
   });
 
   it('should return 400 if no file is uploaded', async () => {
-    const res = await request(app)
-      .post('/api/v1/upload')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).post('/api/v1/upload').set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(400);
   });
@@ -100,7 +91,7 @@ describe('Download File', () => {
 
   //   expect(res.status).toBe(201);
   //   expect(res.body).toHaveProperty('key');
-    
+
   //   console.log('Uploaded file key:', res.body.key); // Debug
 
   //   fs.unlinkSync(testFilePath);
@@ -147,7 +138,7 @@ describe('Flag File', () => {
     const res = await request(app)
       .post(`/api/v1/file/${response.body.fileId}/flag`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ reason: 'Inappropriate content' });
+      .send({reason: 'Inappropriate content'});
 
     expect(res.status).toBe(200);
     // expect(res.body.isFlagged).toBe(true);
@@ -157,7 +148,7 @@ describe('Flag File', () => {
     const res = await request(app)
       .post(`/api/v1/file/somewhere/flag`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ reason: 'test' });
+      .send({reason: 'test'});
 
     expect(res.status).toBe(404);
   });
@@ -183,7 +174,7 @@ describe('Unflag File', () => {
     const res = await request(app)
       .post(`/api/v1/file/${response.body.fileId}/unflag`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ reason: 'Valid!' }); 
+      .send({reason: 'Valid!'});
 
     expect(res.status).toBe(200);
     expect(res.body.isFlagged).toBe(false);
@@ -210,7 +201,7 @@ describe('Flag File as Unsafe', () => {
     const res = await request(app)
       .post(`/api/v1/file/${response.body.fileId}/unsafe`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ reason: 'Bad content' }); 
+      .send({reason: 'Bad content'});
 
     expect(res.body.file.status).toBe('UNSAFE');
   });
@@ -223,6 +214,3 @@ describe('Flag File as Unsafe', () => {
   //   expect(res.status).toBe(404);
   // });
 });
-
-
-

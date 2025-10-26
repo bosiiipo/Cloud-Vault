@@ -10,10 +10,6 @@ const api = config.api;
 
 const router = Router();
 
-router.post(
-  `${api}/folder`,
-  authenticateUser,
-  createFolder,
-);
+router.post(`${api}/folder`, authenticateUser, createFolder);
 
 export {router as createFolderRouter};

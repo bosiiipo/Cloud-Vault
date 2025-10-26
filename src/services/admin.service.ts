@@ -32,9 +32,10 @@ export const flagFile = async (input: {fileId: string; reason: string; adminId: 
   });
 
   if (!file) {
-    const err: any = new Error('File not found!');
-    err.statusCode = 404;
-    throw err;
+    // const err: any = new Error('File not found!');
+    // err.statusCode = 404;
+    // throw err;
+    throw new Error('File not found!');
   }
 
   if (file.isDeleted) {
