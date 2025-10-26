@@ -58,11 +58,13 @@ export const generateDownloadUrl = async (req: Request, res: Response) => {
   }
 };
 
-function isWebReadableStream(body: unknown): body is import('stream/web').ReadableStream<any> {
+function isWebReadableStream<R = unknown>(
+  body: unknown,
+): body is import('stream/web').ReadableStream<R> {
   return (
     typeof body === 'object' &&
     body !== null &&
-    typeof (body as {getReader?: unknown}).getReader === 'function'
+    typeof (body as {getReader?: () => unknown}).getReader === 'function'
   );
 }
 
